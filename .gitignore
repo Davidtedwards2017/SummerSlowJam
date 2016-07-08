@@ -1,0 +1,12 @@
+/Temp
+/obj
+/Library/ShaderCache
+/Library/GiCache
+
+*.csproj
+*.unityproj
+*.sln
+*.user
+*.userprefs
+*.DS_store
+*.Apk
