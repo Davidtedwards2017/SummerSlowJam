@@ -24,6 +24,11 @@ namespace UnityStandardAssets._2D
 
         private bool CheckXMargin()
         {
+            if(PlayerController.Instance.p_State == PlayerController.PlayerStates.DEATH)
+            {
+                return Mathf.Abs(transform.position.x - m_Player.position.x) > xRightMargin;
+            }
+
             // Returns true if the distance between the camera and the player in the x axis is greater than the x margin.
             return (transform.position.x - m_Player.position.x) < xRightMargin;
         }

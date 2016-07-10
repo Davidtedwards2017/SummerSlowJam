@@ -11,8 +11,15 @@ public class HeavyMask : Mask {
     public MovingBlock GrabbedBlock;
 
     // Update is called once per frame
-    void Update()
+    protected override void Update()
     {
+        base.Update();
+            
+        if(!Active)
+        {
+            return;
+        }
+
         PlayerController.Instance.CanFlip = true;
         if (Input.GetKey(KeyCode.R))
         {
@@ -30,7 +37,7 @@ public class HeavyMask : Mask {
 
         if (GrabbedBlock != null)
         {
-            Vector3 dir = (GrabSocket.transform.position - GrabbedBlock.transform.position).normalized;
+            Vector3 dir = (PlayerController.Instance.GrabSocket.position - GrabbedBlock.transform.position).normalized;
             GrabbedBlock.ApplyForce(dir * PushPullForce, GrabbedBlock.transform.position);
         }
 
@@ -56,7 +63,7 @@ public class HeavyMask : Mask {
         foreach(var block in blocks)
         {
             
-            if(Vector3.Distance(GrabSocket.position, block.transform.position) <= grabDistance)
+            if(Vector3.Distance(PlayerController.Instance.GrabSocket.position, block.transform.position) <= grabDistance)
             {
                 return block;
             }

@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Spine.Unity;
 
 public class PlayerController : MonoBehaviour {
 
@@ -10,6 +11,11 @@ public class PlayerController : MonoBehaviour {
 	private Dictionary <PlayerStates, Action> fsm = new Dictionary<PlayerStates, Action>();
 
     public static PlayerController Instance;
+
+    private const string IdleAnimationName = "animation";
+    private const string RunAnimationName = "run";
+
+    public SkeletonAnimation m_Animator;
 
 	//Set enum to hold state of state machine
 	public enum PlayerStates
@@ -22,6 +28,7 @@ public class PlayerController : MonoBehaviour {
 	}
 
     public Transform MaskSocket;
+    public Transform GrabSocket;
 
 	//Float values for speed and jump force
 	public float p_Speed;
@@ -56,6 +63,7 @@ public class PlayerController : MonoBehaviour {
 
     public bool CanFlip = true;
     public bool CanJump = false;
+    public bool CanReceiveInput = true;
     
     //input cooldown times
     private float m_CurrentToggleCooldown;
@@ -68,7 +76,7 @@ public class PlayerController : MonoBehaviour {
 
 
 	//Value to store current player state
-	private PlayerStates p_State;
+	public PlayerStates p_State;
 
     
 	// Use this for initialization
@@ -87,24 +95,26 @@ public class PlayerController : MonoBehaviour {
 	void Start ()
 	{
 		//Reset all values to default at start
-		p_Move = false;
+		p_Move = false; 
 		p_onGround = true;
 		p_facingRight = true;
 
 		//Set references
 		p_Rigidbody = this.gameObject.GetComponent<Rigidbody2D> ();
 		p_groundCheck = transform.Find ("GroundCheck");
+        m_Animator = GetComponentInChildren<SkeletonAnimation>();
 
-		//Set state to IDLE to start
-		SetState (PlayerStates.IDLE);
+        //Set state to IDLE to start
+        SetState (PlayerStates.IDLE);
 
     }
 	
-
-
     public void AquireMask(Transform prefab)
     {
-        throw new NotImplementedException();
+        Transform maskTransform = Instantiate(prefab) as Transform;
+        maskTransform.SetParent(transform.FindChild("Masks"));
+
+        EquipMask(maskTransform.GetComponent<Mask>());
     }
 
     public void EquipNextMask()
@@ -120,15 +130,20 @@ public class PlayerController : MonoBehaviour {
             index = 0;
         }
 
+        EquipMask(masks[index]);
+    }
+
+    public void EquipMask(Mask newMask)
+    {
         //de equip current mask
-        if(CurrentMask != null)
+        if (CurrentMask != null)
         {
             CurrentMask.SetActive(false);
         }
 
         // equip next mask
-        CurrentMask = masks[index];
-        CurrentMask.SetActive(true);        
+        CurrentMask = newMask;
+        CurrentMask.SetActive(true);
     }
 
 	// Update is called once per frame
@@ -154,6 +169,21 @@ public class PlayerController : MonoBehaviour {
             m_CurrentToggleCooldown = MaskToggleCooldownTime;
         }
         
+        if(p_State == PlayerStates.IDLE)
+        {
+            //m_Animator.state.ClearTrack(0);
+            m_Animator.AnimationName = IdleAnimationName;
+            m_Animator.loop = true;
+            //m_Animator.state.SetAnimation(0, IdleAnimationName, true);
+        }
+        else if(p_State == PlayerStates.MOVE)
+        {
+            //m_Animator.state.ClearTrack(0);
+            //m_Animator.state.SetAnimation(0, RunAnimationName, true);
+            m_Animator.AnimationName = RunAnimationName;
+            m_Animator.loop = true;
+        }
+
     }
 		
 	public void SetState (PlayerStates nextState)
@@ -200,6 +230,13 @@ public class PlayerController : MonoBehaviour {
 	//Function to manage buttons
 	void InputManager ()
 	{
+        if(!CanReceiveInput)
+        {
+            horizontal = 0;
+            p_Jump = false;
+            return;
+        }
+
 		horizontal = Input.GetAxisRaw ("Horizontal");
 		p_Jump = Input.GetButtonDown ("Jump");
         p_Toggle = Input.GetKey(KeyCode.W);
@@ -266,11 +303,41 @@ public class PlayerController : MonoBehaviour {
 	}
 
 
+    void SpawnAtPrevCheckpoint()
+    {
+        var checkpoint = Checkpoint.PrevCheckPoint;
+        if(checkpoint != null)
+        {
+            checkpoint.SpwanAtCheckpoint();
+        }
+    }
+
 	//To be added
 	void DeathState ()
 	{
-		return;
+        return;
 	}
+
+    public void Death()
+    {
+        StartCoroutine(DeathSequence());
+    }
+
+    private IEnumerator DeathSequence()
+    {
+        SetState(PlayerStates.DEATH);
+        CanReceiveInput = false;
+        CameraFade.Instance.SetFade(true);
+        yield return new WaitForSeconds(0.2f);
+
+        SpawnAtPrevCheckpoint();
+
+        CameraFade.Instance.SetFade(false);
+        yield return new WaitForSeconds(0.2f);
+
+        SetState(PlayerStates.IDLE);
+        CanReceiveInput = true;
+    }
 
 	void PushState ()
 	{
