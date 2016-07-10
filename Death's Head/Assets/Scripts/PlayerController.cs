@@ -2,11 +2,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public class PlayerController : MonoBehaviour {
 
 	//Set Dictionary to act as a finite State Machine
 	private Dictionary <PlayerStates, Action> fsm = new Dictionary<PlayerStates, Action>();
+
+    public static PlayerController Instance;
 
 	//Set enum to hold state of state machine
 	public enum PlayerStates
@@ -17,10 +20,13 @@ public class PlayerController : MonoBehaviour {
 		DEATH,
 		PUSH
 	}
-		
+
+    public Transform MaskSocket;
 
 	//Float values for speed and jump force
 	public float p_Speed;
+    public float p_NormalRunSpeed;
+    public float p_GrabRunSpeed;
 	public float p_JumpForce;
 
 	//Value to store axis input
@@ -30,6 +36,7 @@ public class PlayerController : MonoBehaviour {
 	bool p_Move;
 	bool p_Jump;
 	bool p_onGround;
+    bool p_Toggle;
 
 	//Bool value to determine player's facing
 	bool p_facingRight;
@@ -44,9 +51,26 @@ public class PlayerController : MonoBehaviour {
 	//LayerMask to only detect ground layer
 	[SerializeField] LayerMask p_checkGround;
 
+    //current equiped mask
+    public Mask CurrentMask;
+
+    public bool CanFlip = true;
+    public bool CanJump = false;
+    
+    //input cooldown times
+    private float m_CurrentToggleCooldown;
+    public float MaskToggleCooldownTime = 0.1f;
+
+    public List<Mask> AquiredMasks
+    {
+        get { return GetComponentsInChildren<Mask>().ToList(); }
+    }
+
+
 	//Value to store current player state
 	private PlayerStates p_State;
 
+    
 	// Use this for initialization
 	void Awake () 
 	{
@@ -56,6 +80,8 @@ public class PlayerController : MonoBehaviour {
 		fsm.Add (PlayerStates.DEATH, DeathState);
 		fsm.Add (PlayerStates.MOVE, MoveState);
 		fsm.Add (PlayerStates.PUSH, PushState);
+
+        Instance = this;
 	}
 
 	void Start ()
@@ -71,8 +97,40 @@ public class PlayerController : MonoBehaviour {
 
 		//Set state to IDLE to start
 		SetState (PlayerStates.IDLE);
-	}
+
+    }
 	
+
+
+    public void AquireMask(Transform prefab)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void EquipNextMask()
+    {
+        //get index of current mask
+        var masks = AquiredMasks;
+        int index = masks.IndexOf(CurrentMask);
+
+        //cycle mask index
+        index++;
+        if(index >= masks.Count)
+        {
+            index = 0;
+        }
+
+        //de equip current mask
+        if(CurrentMask != null)
+        {
+            CurrentMask.SetActive(false);
+        }
+
+        // equip next mask
+        CurrentMask = masks[index];
+        CurrentMask.SetActive(true);        
+    }
+
 	// Update is called once per frame
 	void FixedUpdate () 
 	{
@@ -82,6 +140,21 @@ public class PlayerController : MonoBehaviour {
 
 		fsm [p_State].Invoke (); //Enact the current state, change states when necessary
 	}
+
+    void Update()
+    {
+
+        if(m_CurrentToggleCooldown > 0)
+        {
+            m_CurrentToggleCooldown -= Time.deltaTime;
+        }
+        else if(p_Toggle)
+        {
+            EquipNextMask();
+            m_CurrentToggleCooldown = MaskToggleCooldownTime;
+        }
+        
+    }
 		
 	public void SetState (PlayerStates nextState)
 	{
@@ -109,7 +182,7 @@ public class PlayerController : MonoBehaviour {
 		}
 
 		//On ground and jump, add the jumpforce
-		if (p_onGround && p_Jump) 
+		if (p_onGround && p_Jump && CanJump) 
 		{
 			p_onGround = false;
 			p_Move = false;
@@ -129,6 +202,7 @@ public class PlayerController : MonoBehaviour {
 	{
 		horizontal = Input.GetAxisRaw ("Horizontal");
 		p_Jump = Input.GetButtonDown ("Jump");
+        p_Toggle = Input.GetKey(KeyCode.W);
 	}
 
 	//Function to determine whether or not the player is on the ground
@@ -147,6 +221,11 @@ public class PlayerController : MonoBehaviour {
 
 	void Flip ()
 	{
+        if(!CanFlip)
+        {
+            return;
+        }
+
 		//If you're flipping, flip the bool
 		p_facingRight = !p_facingRight;
 

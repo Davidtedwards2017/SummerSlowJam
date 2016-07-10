@@ -1,0 +1,62 @@
+
+skeleton.png
+size: 1024,128
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Mask_blank
+  rotate: true
+  xy: 920, 35
+  size: 77, 83
+  orig: 77, 83
+  offset: 0, 0
+  index: -1
+Mask_death
+  rotate: false
+  xy: 740, 17
+  size: 88, 95
+  orig: 88, 95
+  offset: 0, 0
+  index: -1
+Mask_eat
+  rotate: false
+  xy: 830, 17
+  size: 88, 95
+  orig: 88, 95
+  offset: 0, 0
+  index: -1
+arm_back
+  rotate: true
+  xy: 293, 70
+  size: 42, 250
+  orig: 52, 254
+  offset: 5, 1
+  index: -1
+arm_front
+  rotate: true
+  xy: 2, 47
+  size: 65, 289
+  orig: 65, 289
+  offset: 0, 0
+  index: -1
+leg_back
+  rotate: true
+  xy: 2, 2
+  size: 43, 275
+  orig: 48, 276
+  offset: 3, 0
+  index: -1
+leg_front
+  rotate: true
+  xy: 279, 5
+  size: 40, 275
+  orig: 40, 275
+  offset: 0, 0
+  index: -1
+torso
+  rotate: true
+  xy: 556, 38
+  size: 74, 182
+  orig: 74, 182
+  offset: 0, 0
+  index: -1
