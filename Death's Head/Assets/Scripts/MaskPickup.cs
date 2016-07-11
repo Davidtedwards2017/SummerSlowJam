@@ -9,7 +9,7 @@ public class MaskPickup : MonoBehaviour {
     {
         if (other.tag.Equals("Player"))
         {
-            Debug.Log("Player picked up mask " + MaskPrefab.name);
+            //Debug.Log("Player picked up mask " + MaskPrefab.name);
             GiveMask();
         }
     }

@@ -202,7 +202,7 @@ public class PlayerController : MonoBehaviour {
 		else if (horizontal == 0 && p_onGround) 
 		{
 			p_Move = false;
-			p_Rigidbody.velocity = Vector2.zero;
+			//p_Rigidbody.velocity = Vector2.zero;
 		}
 
 		//On ground and jump, add the jumpforce
@@ -247,6 +247,8 @@ public class PlayerController : MonoBehaviour {
 		{
 			if (colliders [i].gameObject != gameObject)
 				p_onGround = true;
+			else
+				p_onGround = false;
 		}
 	}
 
@@ -292,7 +294,7 @@ public class PlayerController : MonoBehaviour {
 
         if (!p_Move)
 			SetState (PlayerStates.IDLE);
-		else if (p_Jump)
+		else if (!p_onGround || p_Jump)
 			SetState (PlayerStates.JUMP);
 	}
 

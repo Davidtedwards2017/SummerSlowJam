@@ -15,7 +15,7 @@ public class Checkpoint : MonoBehaviour {
     {
         if (other.tag.Equals("Player"))
         {
-            Debug.Log("player crossed check point");
+            //Debug.Log("player crossed check point");
             PrevCheckPoint = this;
         }
     }
