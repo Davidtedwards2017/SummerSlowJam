@@ -19,9 +19,8 @@ public class HeavyMask : Mask {
         {
             return;
         }
-
-        PlayerController.Instance.CanFlip = true;
-        if (Input.GetKey(KeyCode.R))
+        bool grabInput = Input.GetKey(KeyCode.R);
+        if (grabInput && GrabbedBlock == null)
         {
             var grabbedBlock = GetNearbyBlock();
             if (grabbedBlock != null)
@@ -30,7 +29,7 @@ public class HeavyMask : Mask {
             }
 
         }
-        else if (GrabbedBlock != null)
+        else if(!grabInput && GrabbedBlock != null)
         {
             StopGrab();
         }
@@ -40,20 +39,17 @@ public class HeavyMask : Mask {
             Vector3 dir = (PlayerController.Instance.GrabSocket.position - GrabbedBlock.transform.position).normalized;
             GrabbedBlock.ApplyForce(dir * PushPullForce, GrabbedBlock.transform.position);
         }
-
     }
 
     public void StartGrab(MovingBlock block)
     {
-        PlayerController.Instance.CanFlip = false;
-        PlayerController.Instance.p_Speed = PlayerController.Instance.p_GrabRunSpeed;
+        PlayerController.Instance.StartGrab();
         GrabbedBlock = block;
     }
 
     public void StopGrab()
     {
-        PlayerController.Instance.CanFlip = true;
-        PlayerController.Instance.p_Speed = PlayerController.Instance.p_NormalRunSpeed;
+        PlayerController.Instance.EndGrab();
         GrabbedBlock = null;
     }
         

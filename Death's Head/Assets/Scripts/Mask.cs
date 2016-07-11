@@ -1,16 +1,21 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Spine.Unity;
+using Spine.Unity.Modules;
 
 public abstract class Mask : MonoBehaviour {
 
     public bool Active = false;
 
+    public Sprite MaskSprite;
     public Transform GraphicPrefab;
     public Transform Graphic;
 
+    private SkeletonAnimation m_SkeletonAnimation;
+
 	// Use this for initialization
-	void Start () {
-        
+	void Awake () {
+        m_SkeletonAnimation = PlayerController.Instance.GetComponentInChildren<SkeletonAnimation>();
     }
 	
 	// Update is called once per frame
@@ -33,12 +38,12 @@ public abstract class Mask : MonoBehaviour {
             if(Active)
             {
                 Activated();
-                SetMaskGraphic();
+                SetGraphicVisable(true);
             }
             else
             {
                 Deactivated();
-                Destroy(Graphic.gameObject);
+                SetGraphicVisable(false);
                 Graphic = null;
             }
         }
@@ -46,8 +51,13 @@ public abstract class Mask : MonoBehaviour {
 
     public void SetGraphicVisable(bool visable)
     {
-        
+        if (visable)
+        {
+            m_SkeletonAnimation.skeleton.AttachUnitySprite("head2", MaskSprite);
+        }
     }
+
+   
 
     public void SetMaskGraphic()
     {

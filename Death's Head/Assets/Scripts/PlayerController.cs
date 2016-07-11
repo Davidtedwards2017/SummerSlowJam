@@ -12,8 +12,14 @@ public class PlayerController : MonoBehaviour {
 
     public static PlayerController Instance;
 
-    private const string IdleAnimationName = "animation";
+    private const string IdleAnimationName = "idle";
     private const string RunAnimationName = "run";
+    private const string PushAnimationName = "Push";
+
+    private const string GrabhAnimationName = "grab idle";
+    private const string PullAnimationName = "pull";
+    private const string DeathAnimationName = "death";
+    private const string JumpAnimationName = "jump";
 
     public SkeletonAnimation m_Animator;
 
@@ -24,7 +30,9 @@ public class PlayerController : MonoBehaviour {
 		MOVE,
 		JUMP,
 		DEATH,
-		PUSH
+		PUSH,
+        GRAB,
+        PULL
 	}
 
     public Transform MaskSocket;
@@ -88,6 +96,8 @@ public class PlayerController : MonoBehaviour {
 		fsm.Add (PlayerStates.DEATH, DeathState);
 		fsm.Add (PlayerStates.MOVE, MoveState);
 		fsm.Add (PlayerStates.PUSH, PushState);
+        fsm.Add (PlayerStates.GRAB, GrabState);
+        fsm.Add (PlayerStates.PULL, PullState);
 
         Instance = this;
 	}
@@ -168,22 +178,6 @@ public class PlayerController : MonoBehaviour {
             EquipNextMask();
             m_CurrentToggleCooldown = MaskToggleCooldownTime;
         }
-        
-        if(p_State == PlayerStates.IDLE)
-        {
-            //m_Animator.state.ClearTrack(0);
-            m_Animator.AnimationName = IdleAnimationName;
-            m_Animator.loop = true;
-            //m_Animator.state.SetAnimation(0, IdleAnimationName, true);
-        }
-        else if(p_State == PlayerStates.MOVE)
-        {
-            //m_Animator.state.ClearTrack(0);
-            //m_Animator.state.SetAnimation(0, RunAnimationName, true);
-            m_Animator.AnimationName = RunAnimationName;
-            m_Animator.loop = true;
-        }
-
     }
 		
 	public void SetState (PlayerStates nextState)
@@ -216,8 +210,8 @@ public class PlayerController : MonoBehaviour {
 		{
 			p_onGround = false;
 			p_Move = false;
-			p_Rigidbody.velocity = Vector2.zero;
-			p_Rigidbody.AddForce (new Vector2 (0, p_JumpForce), ForceMode2D.Impulse);
+			//p_Rigidbody.velocity = Vector2.zero;
+			p_Rigidbody.AddForce (new Vector2 ((horizontal * p_Speed) , p_JumpForce), ForceMode2D.Impulse);
 		}
 
 		//If you're facing right, look right. If facing left, look left
@@ -280,7 +274,10 @@ public class PlayerController : MonoBehaviour {
 
 	void IdleState ()
 	{
-		if (p_Move)
+        m_Animator.AnimationName = IdleAnimationName;
+        m_Animator.loop = true;
+
+        if (p_Move)
 			SetState (PlayerStates.MOVE);
 		else if (p_Jump) 
 		{
@@ -290,7 +287,10 @@ public class PlayerController : MonoBehaviour {
 
 	void MoveState ()
 	{
-		if (!p_Move)
+        m_Animator.AnimationName = RunAnimationName;
+        m_Animator.loop = true;
+
+        if (!p_Move)
 			SetState (PlayerStates.IDLE);
 		else if (p_Jump)
 			SetState (PlayerStates.JUMP);
@@ -300,9 +300,12 @@ public class PlayerController : MonoBehaviour {
 	{
 		if (p_onGround)
 			SetState (PlayerStates.IDLE);
-	}
 
+        m_Animator.AnimationName = JumpAnimationName;
+        m_Animator.loop = true;
+    }
 
+   
     void SpawnAtPrevCheckpoint()
     {
         var checkpoint = Checkpoint.PrevCheckPoint;
@@ -320,6 +323,9 @@ public class PlayerController : MonoBehaviour {
 
     public void Death()
     {
+        m_Animator.loop = false;
+        m_Animator.AnimationName = DeathAnimationName;
+
         StartCoroutine(DeathSequence());
     }
 
@@ -327,6 +333,7 @@ public class PlayerController : MonoBehaviour {
     {
         SetState(PlayerStates.DEATH);
         CanReceiveInput = false;
+        yield return new WaitForSeconds(1f);
         CameraFade.Instance.SetFade(true);
         yield return new WaitForSeconds(0.2f);
 
@@ -341,7 +348,55 @@ public class PlayerController : MonoBehaviour {
 
 	void PushState ()
 	{
-		return;
-	}
+        m_Animator.AnimationName = PushAnimationName;
+        m_Animator.loop = true;
+
+        if (!p_Move)
+        {
+            SetState(PlayerStates.GRAB);
+        }
+    }
+
+    public void StartGrab()
+    {
+        SetState(PlayerStates.GRAB);
+        CanFlip = false;
+        p_Speed = p_GrabRunSpeed;
+    }
+
+    public void EndGrab()
+    {
+        SetState(PlayerStates.IDLE);
+        CanFlip = true;
+        p_Speed = p_NormalRunSpeed;
+    }
+
+    void GrabState()
+    {
+        m_Animator.AnimationName = GrabhAnimationName;
+        m_Animator.loop = true;
+
+        
+        if(p_Move && !p_facingRight || horizontal < 0 && p_facingRight)
+        {
+            SetState(PlayerStates.PULL);
+        }
+        else if (p_Move)
+        {
+            SetState(PlayerStates.PUSH);
+        }
+        
+    }
+
+    public void PullState()
+    {
+        m_Animator.AnimationName = PullAnimationName;
+        m_Animator.loop = true;
+
+        if (!p_Move)
+        {
+            SetState(PlayerStates.GRAB);
+        }
+    }
 		
 }
