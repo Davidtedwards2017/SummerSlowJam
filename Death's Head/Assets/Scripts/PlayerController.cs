@@ -77,6 +77,10 @@ public class PlayerController : MonoBehaviour {
     private float m_CurrentToggleCooldown;
     public float MaskToggleCooldownTime = 0.1f;
 
+    private float m_StepSoundCooldown;
+    public float RunStepSoundCooldown = 0.1f;
+    public float DragStepSoundCooldown = 0.2f;
+
     public List<Mask> AquiredMasks
     {
         get { return GetComponentsInChildren<Mask>().ToList(); }
@@ -151,10 +155,15 @@ public class PlayerController : MonoBehaviour {
             CurrentMask.SetActive(false);
         }
 
+        if(CurrentMask != newMask)
+        {
+            SoundController.Instance.PlaySound("maskequip");
+        }
+
         // equip next mask
         CurrentMask = newMask;
         CurrentMask.SetActive(true);
-    }
+   }
 
 	// Update is called once per frame
 	void FixedUpdate () 
@@ -168,6 +177,7 @@ public class PlayerController : MonoBehaviour {
 
     void Update()
     {
+        m_StepSoundCooldown -= Time.deltaTime;
 
         if(m_CurrentToggleCooldown > 0)
         {
@@ -212,6 +222,7 @@ public class PlayerController : MonoBehaviour {
 			p_Move = false;
 			//p_Rigidbody.velocity = Vector2.zero;
 			p_Rigidbody.AddForce (new Vector2 ((horizontal * p_Speed) , p_JumpForce), ForceMode2D.Impulse);
+            SoundController.Instance.PlaySound("jump");
 		}
 
 		//If you're facing right, look right. If facing left, look left
@@ -281,7 +292,7 @@ public class PlayerController : MonoBehaviour {
 
         if (p_Move)
 			SetState (PlayerStates.MOVE);
-		else if (p_Jump) 
+		else if (p_Jump && CanJump) 
 		{
 			SetState (PlayerStates.JUMP);
 		}
@@ -289,19 +300,28 @@ public class PlayerController : MonoBehaviour {
 
 	void MoveState ()
 	{
+        if(m_StepSoundCooldown <= 0)
+        {
+            SoundController.Instance.PlaySound("footstep");
+            m_StepSoundCooldown = RunStepSoundCooldown;
+        }
+
         m_Animator.AnimationName = RunAnimationName;
         m_Animator.loop = true;
 
         if (!p_Move)
 			SetState (PlayerStates.IDLE);
-		else if (!p_onGround || p_Jump)
+		else if (!p_onGround || (p_Jump && CanJump))
 			SetState (PlayerStates.JUMP);
 	}
 
 	void JumpState ()
 	{
-		if (p_onGround)
-			SetState (PlayerStates.IDLE);
+        if (p_onGround)
+        {
+            SoundController.Instance.PlaySound("land");
+            SetState(PlayerStates.IDLE);
+        }
 
         m_Animator.AnimationName = JumpAnimationName;
         m_Animator.loop = true;
@@ -325,9 +345,9 @@ public class PlayerController : MonoBehaviour {
 
     public void Death()
     {
+        SoundController.Instance.PlaySound("death");
         m_Animator.loop = false;
         m_Animator.AnimationName = DeathAnimationName;
-
         StartCoroutine(DeathSequence());
     }
 
@@ -348,19 +368,15 @@ public class PlayerController : MonoBehaviour {
         CanReceiveInput = true;
     }
 
-	void PushState ()
-	{
-        m_Animator.AnimationName = PushAnimationName;
-        m_Animator.loop = true;
-
-        if (!p_Move)
-        {
-            SetState(PlayerStates.GRAB);
-        }
-    }
 
     public void StartGrab()
     {
+        if (m_StepSoundCooldown <= 0)
+        {
+            SoundController.Instance.PlaySound("footstep");
+            m_StepSoundCooldown = DragStepSoundCooldown;
+        }
+
         SetState(PlayerStates.GRAB);
         CanFlip = false;
         p_Speed = p_GrabRunSpeed;
@@ -379,7 +395,7 @@ public class PlayerController : MonoBehaviour {
         m_Animator.loop = true;
 
         
-        if(p_Move && !p_facingRight || horizontal < 0 && p_facingRight)
+        if(p_Move && (!p_facingRight && horizontal > 0) || (horizontal < 0 && p_facingRight))
         {
             SetState(PlayerStates.PULL);
         }
@@ -392,6 +408,12 @@ public class PlayerController : MonoBehaviour {
 
     public void PullState()
     {
+        if (m_StepSoundCooldown <= 0)
+        {
+            SoundController.Instance.PlaySound("footstep");
+            m_StepSoundCooldown = DragStepSoundCooldown;
+        }
+
         m_Animator.AnimationName = PullAnimationName;
         m_Animator.loop = true;
 
@@ -399,6 +421,42 @@ public class PlayerController : MonoBehaviour {
         {
             SetState(PlayerStates.GRAB);
         }
+        else if(IsPushing())
+        {
+            SetState(PlayerStates.PUSH);
+        }
+
+    }
+
+	void PushState ()
+	{
+        if (m_StepSoundCooldown <= 0)
+        {
+            SoundController.Instance.PlaySound("footstep");
+            m_StepSoundCooldown = DragStepSoundCooldown;
+        }
+
+        m_Animator.AnimationName = PushAnimationName;
+        m_Animator.loop = true;
+
+        if (!p_Move)
+        {
+            SetState(PlayerStates.GRAB);
+        }
+        else if(IsPulling())
+        {
+            SetState(PlayerStates.PULL);
+        }
+    }
+
+    private bool IsPulling()
+    {
+        return(p_Move && (!p_facingRight && horizontal > 0) || (horizontal < 0 && p_facingRight));
+    }
+
+    private bool IsPushing()
+    {
+        return (p_Move && (!p_facingRight && horizontal < 0) || (horizontal > 0 && p_facingRight));
     }
 		
 }

@@ -16,6 +16,7 @@ public class MaskPickup : MonoBehaviour {
 
     public void GiveMask()
     {
+        SoundController.Instance.PlaySound("maskpickup");
         PlayerController.Instance.AquireMask(MaskPrefab);
         Destroy(gameObject);
     }
