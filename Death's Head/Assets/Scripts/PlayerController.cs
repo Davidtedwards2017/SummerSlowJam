@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -245,6 +246,11 @@ public class PlayerController : MonoBehaviour {
 		horizontal = Input.GetAxisRaw ("Horizontal");
 		p_Jump = Input.GetButtonDown ("Jump");
         p_Toggle = Input.GetKey(KeyCode.W);
+
+		if (Input.GetKeyDown (KeyCode.F1)) 
+		{
+			SceneManager.LoadScene ("Main");
+		}
 	}
 
 	//Function to determine whether or not the player is on the ground

@@ -14,12 +14,29 @@ namespace UnityStandardAssets._2D
 
         public Transform m_Player; // Reference to the player's transform.
 
+		private Vector2 maxXAndY;		// The maximum x and y coordinates the camera can have.
+		private float minX;// The minimum x and y coordinates the camera can have.
+		private float minY;
+
+		public Transform worldTopRight;
+		public Transform worldBottomLeft;
+
 
         private void Awake()
         {
             // Setting up the reference.
             m_Player = GameObject.FindGameObjectWithTag("Player").transform;
         }
+
+		private void Start ()
+		{
+			worldTopRight = GameObject.Find ("WorldTopRight").GetComponent<Transform> ();
+			worldBottomLeft = GameObject.Find ("WorldBottomLeft").GetComponent<Transform> ();
+
+			maxXAndY = worldTopRight.transform.position;
+			minY = worldBottomLeft.transform.position.y;
+			minX = worldBottomLeft.transform.position.x;
+		}
 
 
         private bool CheckXMargin()
@@ -55,6 +72,9 @@ namespace UnityStandardAssets._2D
             // By default the target x and y coordinates of the camera are it's current x and y coordinates.
             float targetX = transform.position.x;
             float targetY = transform.position.y;
+
+			maxXAndY = worldTopRight.transform.position;
+			minY = worldBottomLeft.transform.position.y;
                        
 
             // If the player has moved beyond the x margin...
@@ -70,6 +90,14 @@ namespace UnityStandardAssets._2D
                 // ... the target y coordinate should be a Lerp between the camera's current y position and the player's current y position.
                 targetY = Mathf.Lerp(transform.position.y, m_Player.position.y, ySmooth*Time.deltaTime);
             }
+
+			// The target x and y coordinates should not be larger than the maximum or smaller than the minimum.
+			targetX = Mathf.Clamp (targetX, minX, maxXAndY.x);
+
+			targetY = Mathf.Clamp (targetY, minY, maxXAndY.y);
+
+			// Set the camera's position to the target position with the same z component.
+			transform.position = new Vector3 (targetX, transform.position.y, transform.position.z);
 
 
             // Set the camera's position to the target position with the same z component.
