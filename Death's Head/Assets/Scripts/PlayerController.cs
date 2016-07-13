@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System;
 using System.Collections;
@@ -70,6 +71,9 @@ public class PlayerController : MonoBehaviour {
     //current equiped mask
     public Mask CurrentMask;
 
+	[SerializeField] GameObject MaskGO;
+	public GameObject[] maskUI;
+
     public bool CanFlip = true;
     public bool CanJump = false;
     public bool CanReceiveInput = true;
@@ -105,6 +109,7 @@ public class PlayerController : MonoBehaviour {
         fsm.Add (PlayerStates.PULL, PullState);
 
         Instance = this;
+	
 	}
 
 	void Start ()
@@ -118,6 +123,8 @@ public class PlayerController : MonoBehaviour {
 		p_Rigidbody = this.gameObject.GetComponent<Rigidbody2D> ();
 		p_groundCheck = transform.Find ("GroundCheck");
         m_Animator = GetComponentInChildren<SkeletonAnimation>();
+		maskUI = GameObject.FindGameObjectsWithTag ("Masks");
+		MaskGO.SetActive (false);
 
         //Set state to IDLE to start
         SetState (PlayerStates.IDLE);
@@ -151,10 +158,16 @@ public class PlayerController : MonoBehaviour {
     public void EquipMask(Mask newMask)
     {
         //de equip current mask
-        if (CurrentMask != null)
-        {
-            CurrentMask.SetActive(false);
-        }
+		if (CurrentMask != null && AquiredMasks.Count <= 2) 
+		{
+			CurrentMask.SetActive (false);
+			maskUI [0].GetComponent<Image> ().sprite = CurrentMask.MaskSprite;
+		} 
+
+		else if (CurrentMask != null && AquiredMasks.Count >= 2) 
+		{
+			CurrentMask.SetActive (false);
+		}
 
         if(CurrentMask != newMask)
         {
@@ -164,6 +177,8 @@ public class PlayerController : MonoBehaviour {
         // equip next mask
         CurrentMask = newMask;
         CurrentMask.SetActive(true);
+		MaskGO.SetActive (true);
+		maskUI [1].GetComponent<Image> ().sprite = CurrentMask.MaskSprite;
    }
 
 	// Update is called once per frame
@@ -184,7 +199,7 @@ public class PlayerController : MonoBehaviour {
         {
             m_CurrentToggleCooldown -= Time.deltaTime;
         }
-        else if(p_Toggle)
+		else if(p_Toggle && AquiredMasks.Count >= 2)
         {
             EquipNextMask();
             m_CurrentToggleCooldown = MaskToggleCooldownTime;
@@ -245,6 +260,8 @@ public class PlayerController : MonoBehaviour {
 
 		horizontal = Input.GetAxisRaw ("Horizontal");
 		p_Jump = Input.GetButtonDown ("Jump");
+
+
         p_Toggle = Input.GetKey(KeyCode.W);
 
 		if (Input.GetKeyDown (KeyCode.F1)) 
