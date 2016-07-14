@@ -28,9 +28,6 @@ public class MovingBlock : MonoBehaviour {
 
     public void Update()
     {
-        var acceleration = (rigidBody.velocity - lastVelocity) / Time.fixedDeltaTime;
-        lastVelocity = rigidBody.velocity;
-
         if (rigidBody.velocity.magnitude > MinSpeedForSound)
         {
             if (!audioSource.isPlaying)
