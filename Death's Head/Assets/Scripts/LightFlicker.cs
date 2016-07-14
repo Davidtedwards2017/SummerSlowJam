@@ -23,7 +23,7 @@ public class LightFlicker : MonoBehaviour {
 	{
 		while (true) {
 			yield return new WaitForSeconds (.05f);
-			alphaLev = 1.0f * Random.Range (.8f, 1.0f);
+			alphaLev = 1.0f * Random.Range (.75f, 1.0f);
 			mySprite.color = new Color (1, 1, 1, alphaLev);
 		} 
 	}

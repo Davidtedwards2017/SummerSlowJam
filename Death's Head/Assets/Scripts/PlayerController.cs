@@ -99,6 +99,8 @@ public class PlayerController : MonoBehaviour {
     private Spine.Slot scytheSlot;
     public Spine.Attachment scytheAttachment;
     public Sprite blank;
+
+	[SerializeField] GameObject deathPoof;
     
 	// Use this for initialization
 	void Awake () 
@@ -401,6 +403,7 @@ public class PlayerController : MonoBehaviour {
     {
         SetState(PlayerStates.DEATH);
         CanReceiveInput = false;
+		Instantiate (deathPoof, this.gameObject.transform.position, deathPoof.transform.rotation);
         yield return new WaitForSeconds(1f);
         CameraFade.Instance.SetFade(true);
         yield return new WaitForSeconds(0.2f);

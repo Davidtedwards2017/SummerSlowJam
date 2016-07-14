@@ -13,6 +13,9 @@ public class IntroScript : MonoBehaviour {
 	[SerializeField] Camera mainCam; //Reference to the camera to teleport it later
 	[SerializeField] GameObject CamPoint; //Transform of which to teleport the camera.
 
+	[SerializeField] GameObject maskPos;
+	[SerializeField] GameObject dropMask;
+
 	public static bool gameStart; //Bool that will unlock player movement when the fade in is finished
 
     public SequenceActorController Child;
@@ -66,6 +69,8 @@ public class IntroScript : MonoBehaviour {
         Killer.StartAnimation("kill", 0.5f, false);
 
         yield return new WaitForSeconds(1.3f);
+		Instantiate (dropMask, maskPos.transform.position, Quaternion.identity);
+		yield return new WaitForSeconds (0.1f);
         Victim.StartAnimation("death", 1.0f, false);
 
         //yield return new WaitForSeconds (1);
@@ -78,6 +83,7 @@ public class IntroScript : MonoBehaviour {
         
 		print ("The victim has been killed, slumps over, and dies");
 		Destroy (killTarget);
+
 		fadeOutStart = true;
 		yield break;
 	}
