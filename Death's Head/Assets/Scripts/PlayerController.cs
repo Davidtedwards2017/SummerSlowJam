@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Spine.Unity;
+using Spine.Unity.Modules;
 
 public class PlayerController : MonoBehaviour {
 
@@ -91,6 +92,9 @@ public class PlayerController : MonoBehaviour {
 	//Value to store current player state
 	public PlayerStates p_State;
 
+    private Spine.Slot scytheSlot;
+    public Spine.Attachment scytheAttachment;
+    public Sprite blank;
     
 	// Use this for initialization
 	void Awake () 
@@ -107,10 +111,12 @@ public class PlayerController : MonoBehaviour {
         Instance = this;
 	}
 
+
+
 	void Start ()
 	{
-		//Reset all values to default at start
-		p_Move = false; 
+        //Reset all values to default at start
+        p_Move = false; 
 		p_onGround = true;
 		p_facingRight = true;
 
@@ -119,11 +125,28 @@ public class PlayerController : MonoBehaviour {
 		p_groundCheck = transform.Find ("GroundCheck");
         m_Animator = GetComponentInChildren<SkeletonAnimation>();
 
+        scytheSlot = m_Animator.skeleton.slots.Items.FirstOrDefault(slot => slot.ToString().Equals("scythe"));
+        scytheAttachment = scytheSlot.Attachment;
+        SetScytheActive(false);
+
+
         //Set state to IDLE to start
         SetState (PlayerStates.IDLE);
 
     }
 	
+    public void SetScytheActive(bool active)
+    {
+        if(active)
+        {
+            scytheSlot.Attachment = scytheAttachment;
+        }
+        else
+        {
+            m_Animator.skeleton.AttachUnitySprite("scythe", blank, "Unlit/Transparent");
+        }
+    }
+
     public void AquireMask(Transform prefab)
     {
         Transform maskTransform = Instantiate(prefab) as Transform;
