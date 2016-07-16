@@ -403,7 +403,7 @@ public class PlayerController : MonoBehaviour {
 		Instantiate (deathPoof, this.gameObject.transform.position, deathPoof.transform.rotation);
         yield return new WaitForSeconds(1f);
         CameraFade.Instance.SetFade(true);
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(1.0f);
 
         SpawnAtPrevCheckpoint();
 

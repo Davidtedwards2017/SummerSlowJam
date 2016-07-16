@@ -40,6 +40,18 @@ public class MovingBlock : MonoBehaviour {
         {
             audioSource.Stop();
         }
+
+		if (Moveable) 
+		{
+			rigidBody.drag = 5;
+			rigidBody.angularDrag = 25;
+		} 
+
+		else if (!Moveable) 
+		{
+			rigidBody.drag = 1000;
+			rigidBody.angularDrag = 1000;
+		}
     }
 
 

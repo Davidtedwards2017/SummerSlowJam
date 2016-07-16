@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityStandardAssets._2D;
 using UnityEngine.SceneManagement;
-using UnityEditor;
+//using UnityEditor;
 
 public class IntroScript : MonoBehaviour {
 
@@ -16,10 +16,18 @@ public class IntroScript : MonoBehaviour {
 	[SerializeField] GameObject fadeSpriteFull; //Fade (Full black)
 
 	[SerializeField] Camera mainCam; //Reference to the camera to teleport it later
-	[SerializeField] GameObject CamPoint; //Transform of which to teleport the camera.
+	//[SerializeField] GameObject CamPoint; //Transform of which to teleport the camera.
 
 	[SerializeField] GameObject maskPos;
 	[SerializeField] GameObject dropMask;
+
+	[SerializeField] GameObject newPlayer;
+
+	[SerializeField] AudioClip bellToll;
+	[SerializeField] GameObject backSwap;
+	[SerializeField] Sprite newBG;
+
+	private AudioSource source;
 
 	public static bool gameStart; //Bool that will unlock player movement when the fade in is finished
 
@@ -56,6 +64,7 @@ public class IntroScript : MonoBehaviour {
 		fadeOutStart = false;
 		fadeInStart = false;
 		gameStart = false;
+		source = this.gameObject.GetComponent<AudioSource> ();
 	}
 
 	void Update () 
@@ -122,7 +131,12 @@ public class IntroScript : MonoBehaviour {
         Killer.StartAnimation("kill", 0.5f, false);
 
         yield return new WaitForSeconds(1.3f);
+
+		source.PlayOneShot (bellToll);
+		backSwap.GetComponent<SpriteRenderer> ().sprite = newBG;
 		Instantiate (dropMask, maskPos.transform.position, Quaternion.identity);
+			
+
 		yield return new WaitForSeconds (0.1f);
         Victim.StartAnimation("death", 1.0f, false);
 
@@ -139,8 +153,10 @@ public class IntroScript : MonoBehaviour {
 
 		fadeOutStart = true;
         yield return new WaitForSeconds(5);
-        
-        ReloadLoadScene();
+
+		FadeOut ();
+		FadeIn ();
+		ReloadLoadScene();
 
     }
 
@@ -175,7 +191,7 @@ public class IntroScript : MonoBehaviour {
     {
         if (fadeInStart)
         {
-            mainCam.GetComponent<Transform>().position = CamPoint.GetComponent<Transform>().position; //Teleport camera to right position
+            //mainCam.GetComponent<Transform>().position = CamPoint.GetComponent<Transform>().position; //Teleport camera to right position
             Destroy(fadeSpriteMask); //Cleanup the garbage
             fadeSpriteFull.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, alphaFull);
             alphaFull -= (fadeSpeed * Time.deltaTime);
@@ -195,6 +211,8 @@ public class IntroScript : MonoBehaviour {
     public void ReloadLoadScene()
     {
         SceneManager.LoadScene(SceneToLoad);
+		//newPlayer.SetActive (true);
+		//Destroy (GameObject.Find("IntroPrefab"));
     }
 
     void OnLevelWasLoaded(int level)
