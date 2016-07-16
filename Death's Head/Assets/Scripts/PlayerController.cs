@@ -73,6 +73,8 @@ public class PlayerController : MonoBehaviour {
     public Mask CurrentMask;
 
 	public GameObject[] maskUI;
+	[SerializeField] Sprite jumpUI;
+	[SerializeField] Sprite pushUI;
 
     public bool CanFlip = true;
     public bool CanJump = false;
@@ -184,6 +186,7 @@ public class PlayerController : MonoBehaviour {
 		if (CurrentMask != null && AquiredMasks.Count <= 2) 
 		{
 			CurrentMask.SetActive (false);
+
 			maskUI [0].GetComponent<Image> ().sprite = CurrentMask.MaskSprite;
 		} 
 
@@ -199,8 +202,12 @@ public class PlayerController : MonoBehaviour {
 
         // equip next mask
         CurrentMask = newMask;
-        CurrentMask.SetActive(true);		
-		maskUI [1].GetComponent<Image> ().sprite = CurrentMask.MaskSprite;
+        CurrentMask.SetActive(true);
+		if (CurrentMask.name == "JumpMask(Clone)")
+			maskUI [1].GetComponent<Image> ().sprite = jumpUI;
+
+		else if (CurrentMask.name == "HeavyMask(Clone)")
+			maskUI[1].GetComponent<Image>().sprite = pushUI;
    }
 
 	// Update is called once per frame
