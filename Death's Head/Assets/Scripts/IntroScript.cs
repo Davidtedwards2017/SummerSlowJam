@@ -87,7 +87,7 @@ public class IntroScript : MonoBehaviour {
 	void Update () 
 	{
 		//Press "action" button. This can change to whatever we're actually using
-		if (SetupSequnceCompleted && Input.GetKeyDown (KeyCode.F)) 
+		if (SetupSequnceCompleted && Input.GetButtonDown("Jump")) 
 		{
             StartCoroutine(KillSequence());
             SetupSequnceCompleted = false;

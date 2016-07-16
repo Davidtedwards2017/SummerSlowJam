@@ -15,6 +15,9 @@ public class MoveBoundary : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
 	{
-		this.gameObject.transform.position = new Vector2 (transform.position.x, PlayerRef.GetComponent<Transform> ().position.y + yBound);
+        if (PlayerRef != null)
+        {
+            this.gameObject.transform.position = new Vector2(transform.position.x, PlayerRef.GetComponent<Transform>().position.y + yBound);
+        }
 	}
 }

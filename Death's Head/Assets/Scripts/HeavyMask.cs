@@ -19,7 +19,8 @@ public class HeavyMask : Mask {
         {
             return;
         }
-        bool grabInput = Input.GetKey(KeyCode.R);
+
+        bool grabInput = Input.GetButton("Jump");
         if (grabInput && GrabbedBlock == null)
         {
             var grabbedBlock = GetNearbyBlock();
@@ -33,6 +34,8 @@ public class HeavyMask : Mask {
         {
             StopGrab();
         }
+
+        MovingBlock.Moveable = (GrabbedBlock != null);
 
         if (GrabbedBlock != null)
         {

@@ -28,6 +28,8 @@ public class MovingBlock : MonoBehaviour {
 
     public void Update()
     {
+        rigidBody.drag = (Moveable) ? 5 : 50000;
+        
         if (rigidBody.velocity.magnitude > MinSpeedForSound)
         {
             if (!audioSource.isPlaying)
