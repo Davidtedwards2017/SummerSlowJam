@@ -1,7 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityStandardAssets._2D;
+using UnityEngine.SceneManagement;
+using UnityEditor;
 
 public class IntroScript : MonoBehaviour {
+
+    public static IntroScript Instance;
 
 	//Lazy references to everything needed, as this is a singleton and it'll all be gone immediately afterwards
 	[SerializeField] GameObject theKiller; //Killer Sprite
@@ -24,6 +29,13 @@ public class IntroScript : MonoBehaviour {
 
     public Transform SwingPosAnchor;
     public Transform OffscreenRightAnchor;
+    public Transform VictimDeathAnchor;
+    public Transform VictimWaitAnchor;
+
+    public Transform FirstCamFocusAnchor;
+    public Transform SecondCamFocusAnchor;
+
+    public string SceneToLoad;
 
     //Values for alphas and fading
     float alphaMask = 0;
@@ -35,9 +47,12 @@ public class IntroScript : MonoBehaviour {
 	bool fadeInStart;
 
 
+    bool SetupSequnceCompleted = false;
+
 	// Use this for initialization
 	void Start () 
 	{
+        Instance = this;
 		fadeOutStart = false;
 		fadeInStart = false;
 		gameStart = false;
@@ -46,21 +61,59 @@ public class IntroScript : MonoBehaviour {
 	void Update () 
 	{
 		//Press "action" button. This can change to whatever we're actually using
-		if (Input.GetKeyDown (KeyCode.F)) 
+		if (SetupSequnceCompleted /* && Input.GetKeyDown (KeyCode.F)*/) 
 		{
-			StartCoroutine ("KillSequence");
-		}
+            StartCoroutine(KillSequence());
+            SetupSequnceCompleted = false;
+        }
 
 		//Fading out and in when Coroutine is done
 		FadeOut ();
 		FadeIn ();
 	}
 
+    public void StartSetupSequence()
+    {
+        StartCoroutine(SetupSequence());
+    }
+
+    IEnumerator SetupSequence()
+    {
+        Killer.SetVisable(true);
+        CameraFollow.Instance.Target = FirstCamFocusAnchor;
+        CameraFollow.Instance.xSmooth = 2;
+
+        //victim walks on screen
+        Victim.MoveTo(VictimWaitAnchor, 1);
+        Victim.StartAnimation("run", 0.5f, true);
+        yield return new WaitForSeconds(1);
+
+        //victim sees killer
+        Victim.StartAnimation("idle", 0.5f, true);
+        yield return new WaitForSeconds(1);
+
+        //victim kneels
+        Victim.MoveTo(VictimDeathAnchor, 2);
+        Victim.StartAnimation("run", 0.3f, true);
+        yield return new WaitForSeconds(1);
+
+        //killer raises scythe
+        Victim.StartAnimation("kneel", 0.2f, true);
+
+        //camera pans over to show kid
+        CameraFollow.Instance.Target = SecondCamFocusAnchor;
+        Child.SetVisable(true);
+
+
+        yield return new WaitForSeconds(1);
+        SetupSequnceCompleted = true;
+    }
+
 	//Coroutine to set speed of sequence based on the speeds of the individual animations
 	IEnumerator KillSequence ()
 	{
 		print ("The killer swings");
-
+        Victim.StartAnimation("kneel", 0.2f, true);
         Killer.StartAnimation("run", 0.3f, true);
         Killer.MoveTo(SwingPosAnchor, 1);
         yield return new WaitForSeconds(1);
@@ -85,8 +138,11 @@ public class IntroScript : MonoBehaviour {
 		Destroy (killTarget);
 
 		fadeOutStart = true;
-		yield break;
-	}
+        yield return new WaitForSeconds(5);
+        
+        ReloadLoadScene();
+
+    }
 
 	//Function for fading out
 	void FadeOut ()
@@ -114,24 +170,36 @@ public class IntroScript : MonoBehaviour {
 	}
 
 
-	//Function for fading back in
-	void FadeIn()
-	{
-		if (fadeInStart) 
-		{
-			mainCam.GetComponent<Transform> ().position = CamPoint.GetComponent<Transform> ().position; //Teleport camera to right position
-			Destroy (fadeSpriteMask); //Cleanup the garbage
-			fadeSpriteFull.GetComponent<SpriteRenderer> ().color = new Color (0, 0, 0, alphaFull); 
-			alphaFull -= (fadeSpeed * Time.deltaTime);
+    //Function for fading back in
+    void FadeIn()
+    {
+        if (fadeInStart)
+        {
+            mainCam.GetComponent<Transform>().position = CamPoint.GetComponent<Transform>().position; //Teleport camera to right position
+            Destroy(fadeSpriteMask); //Cleanup the garbage
+            fadeSpriteFull.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, alphaFull);
+            alphaFull -= (fadeSpeed * Time.deltaTime);
 
-			if (alphaFull <= 0) 
-			{
-				//Start the game, destroy all of this garbage
-				gameStart = true;
-				Destroy (fadeSpriteFull);
-				Destroy (this.gameObject);
-			}
-		}
+            if (alphaFull <= 0)
+            {
+                //Start the game, destroy all of this garbage
+                gameStart = true;
+                Destroy(fadeSpriteFull);
+                Destroy(this.gameObject);
+            }
 
-	}
+
+        }
+    }
+
+    public void ReloadLoadScene()
+    {
+        SceneManager.LoadScene(SceneToLoad);
+    }
+
+    void OnLevelWasLoaded(int level)
+    {
+        CameraFade.Instance.SetFade(false);
+
+    }
 }

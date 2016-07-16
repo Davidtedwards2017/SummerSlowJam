@@ -5,15 +5,22 @@ using Spine.Unity;
 public class SequenceActorController : MonoBehaviour {
 
     private SkeletonAnimation m_Animator;
+    private Renderer m_Renderer;
         // Use this for initialization
 	void Start () {
         m_Animator = GetComponentInChildren<SkeletonAnimation>();
+        m_Renderer = GetComponentInChildren<Renderer>();
     }
 	
 	// Update is called once per frame
 	void Update () {
 	    
 	}
+
+    public void SetVisable(bool visable)
+    {
+        m_Renderer.enabled = visable;
+    }
 
     public void MoveTo(Transform anchor, float duration)
     {
