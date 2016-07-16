@@ -72,7 +72,6 @@ public class PlayerController : MonoBehaviour {
     //current equiped mask
     public Mask CurrentMask;
 
-	[SerializeField] GameObject MaskGO;
 	public GameObject[] maskUI;
 
     public bool CanFlip = true;
@@ -132,7 +131,6 @@ public class PlayerController : MonoBehaviour {
 		p_groundCheck = transform.Find ("GroundCheck");
         m_Animator = GetComponentInChildren<SkeletonAnimation>();
 		maskUI = GameObject.FindGameObjectsWithTag ("Masks");
-		MaskGO.SetActive (false);
 
         scytheSlot = m_Animator.skeleton.slots.Items.FirstOrDefault(slot => slot.ToString().Equals("scythe"));
         scytheAttachment = scytheSlot.Attachment;
@@ -201,8 +199,7 @@ public class PlayerController : MonoBehaviour {
 
         // equip next mask
         CurrentMask = newMask;
-        CurrentMask.SetActive(true);
-		MaskGO.SetActive (true);
+        CurrentMask.SetActive(true);		
 		maskUI [1].GetComponent<Image> ().sprite = CurrentMask.MaskSprite;
    }
 
