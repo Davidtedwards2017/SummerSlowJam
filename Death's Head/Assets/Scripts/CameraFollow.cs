@@ -22,11 +22,13 @@ namespace UnityStandardAssets._2D
 		public Transform worldTopRight;
 		public Transform worldBottomLeft;
 
+        void Awake()
+        {
+            Instance = this;
+        }
 
 		private void Start ()
 		{
-            Instance = this;
-            Target = PlayerController.Instance.transform;
             worldTopRight = GameObject.Find ("WorldTopRight").GetComponent<Transform> ();
 			worldBottomLeft = GameObject.Find ("WorldBottomLeft").GetComponent<Transform> ();
 

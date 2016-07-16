@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Spine.Unity;
 using Spine.Unity.Modules;
+using UnityStandardAssets._2D;
 
 public class PlayerController : MonoBehaviour {
 
@@ -139,7 +140,6 @@ public class PlayerController : MonoBehaviour {
 
         //Set state to IDLE to start
         SetState (PlayerStates.IDLE);
-
     }
 	
     public void SetScytheActive(bool active)
@@ -215,6 +215,8 @@ public class PlayerController : MonoBehaviour {
 
     void Update()
     {
+        CameraFollow.Instance.Target = this.transform;
+
         m_StepSoundCooldown -= Time.deltaTime;
 
         if(m_CurrentToggleCooldown > 0)

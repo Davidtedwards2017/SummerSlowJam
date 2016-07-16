@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityStandardAssets._2D;
 using UnityEngine.SceneManagement;
+using System;
 //using UnityEditor;
 
 public class IntroScript : MonoBehaviour {
@@ -19,7 +20,7 @@ public class IntroScript : MonoBehaviour {
 	//[SerializeField] GameObject CamPoint; //Transform of which to teleport the camera.
 
 	[SerializeField] GameObject maskPos;
-	[SerializeField] GameObject dropMask;
+	[SerializeField] Transform dropMask;
 
 	[SerializeField] GameObject newPlayer;
 
@@ -28,6 +29,8 @@ public class IntroScript : MonoBehaviour {
 	[SerializeField] Sprite newBG;
 
 	private AudioSource source;
+
+    public Transform DeathParticlePrefab;
 
 	public static bool gameStart; //Bool that will unlock player movement when the fade in is finished
 
@@ -54,23 +57,37 @@ public class IntroScript : MonoBehaviour {
 	bool fadeOutStart;
 	bool fadeInStart;
 
+    public static int Replays = 0;
 
     bool SetupSequnceCompleted = false;
 
-	// Use this for initialization
-	void Start () 
+    void OnLevelWasLoaded(int level)
+    {
+
+    }
+
+    // Use this for initialization
+    void Start () 
 	{
         Instance = this;
 		fadeOutStart = false;
 		fadeInStart = false;
 		gameStart = false;
 		source = this.gameObject.GetComponent<AudioSource> ();
-	}
+
+        CameraFade.Instance.SetFade(false);
+        Replays++;
+
+        if (Replays == 1) //first playthrough
+        {
+            SetupFirstPlaythrough();
+        }
+    }
 
 	void Update () 
 	{
 		//Press "action" button. This can change to whatever we're actually using
-		if (SetupSequnceCompleted /* && Input.GetKeyDown (KeyCode.F)*/) 
+		if (SetupSequnceCompleted && Input.GetKeyDown (KeyCode.F)) 
 		{
             StartCoroutine(KillSequence());
             SetupSequnceCompleted = false;
@@ -80,6 +97,24 @@ public class IntroScript : MonoBehaviour {
 		FadeOut ();
 		FadeIn ();
 	}
+
+    public void SetupFirstPlaythrough()
+    {
+        //start half way through sequence (from prespective of child)
+        Destroy(PlayerController.Instance.gameObject);
+        CameraFollow.Instance.Target = SecondCamFocusAnchor;
+
+        Child.SetVisable(true);
+        Killer.SetVisable(true);
+        Child.StartAnimation("idle", 0.2f, true);
+        Killer.StartAnimation("kill_still", 0.5f, false);
+        Victim.StartAnimation("kneel", 0.2f, false);
+        Killer.transform.position = SwingPosAnchor.position;
+        Victim.transform.position = VictimDeathAnchor.position;
+
+        SetupSequnceCompleted = true;
+
+    }
 
     public void StartSetupSequence()
     {
@@ -93,71 +128,82 @@ public class IntroScript : MonoBehaviour {
         CameraFollow.Instance.xSmooth = 2;
 
         //victim walks on screen
-        Victim.MoveTo(VictimWaitAnchor, 1);
-        Victim.StartAnimation("run", 0.5f, true);
-        yield return new WaitForSeconds(1);
+        Victim.MoveTo(VictimWaitAnchor, 2);
+        Victim.StartAnimation("walk", 0.8f, true);
+        PlayFootSteps(2, 0.7f);
+        yield return new WaitForSeconds(2);
 
         //victim sees killer
         Victim.StartAnimation("idle", 0.5f, true);
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(1.5f);
 
         //victim kneels
-        Victim.MoveTo(VictimDeathAnchor, 2);
-        Victim.StartAnimation("run", 0.3f, true);
-        yield return new WaitForSeconds(1);
+        Victim.MoveTo(VictimDeathAnchor, 1.5f);
+        Victim.StartAnimation("walk", 0.6f, true);
+        PlayFootSteps(2, 0.8f);
+        yield return new WaitForSeconds(2f);
 
-        //killer raises scythe
         Victim.StartAnimation("kneel", 0.2f, true);
+        yield return new WaitForSeconds(1.5f);
+
+        Killer.StartAnimation("walk", 0.3f, true);
+        Killer.MoveTo(SwingPosAnchor, 1);
+        PlayFootSteps(1, 0.8f);
 
         //camera pans over to show kid
         CameraFollow.Instance.Target = SecondCamFocusAnchor;
         Child.SetVisable(true);
 
-
         yield return new WaitForSeconds(1);
+        Killer.StartAnimation("idle", 0.3f, true);
+        yield return new WaitForSeconds(1);
+        Killer.StartAnimation("kill_still", 0.5f, false);
+
         SetupSequnceCompleted = true;
     }
 
 	//Coroutine to set speed of sequence based on the speeds of the individual animations
 	IEnumerator KillSequence ()
 	{
-		print ("The killer swings");
-        Victim.StartAnimation("kneel", 0.2f, true);
-        Killer.StartAnimation("run", 0.3f, true);
-        Killer.MoveTo(SwingPosAnchor, 1);
-        yield return new WaitForSeconds(1);
-        Killer.StartAnimation("idle", 0.3f, true);
-        yield return new WaitForSeconds(1);
-        Killer.StartAnimation("kill", 0.5f, false);
-
-        yield return new WaitForSeconds(1.3f);
+        Killer.StartAnimation("kill_swing", 0.5f, false);
+        yield return new WaitForSeconds(0.25f);
 
 		source.PlayOneShot (bellToll);
-		backSwap.GetComponent<SpriteRenderer> ().sprite = newBG;
-		Instantiate (dropMask, maskPos.transform.position, Quaternion.identity);
-			
+        PlayDeathEffect(Victim.transform.position);
+        backSwap.GetComponent<SpriteRenderer> ().sprite = newBG;
+        DropMask();
 
-		yield return new WaitForSeconds (0.1f);
-        Victim.StartAnimation("death", 1.0f, false);
+        yield return new WaitForSeconds (0.1f);
+        Victim.StartAnimation("death_kneel", 1.0f, false);
 
         //yield return new WaitForSeconds (1);
-        Child.MoveTo(SwingPosAnchor, 6);
+        Child.MoveTo(SwingPosAnchor, 4);
         Child.StartAnimation("run", 0.7f, true);
         yield return new WaitForSeconds(1);
 
         Killer.MoveTo(OffscreenRightAnchor, 5);
-        Killer.StartAnimation("run", 0.5f, true);
-        
-		print ("The victim has been killed, slumps over, and dies");
-		Destroy (killTarget);
+        Killer.StartAnimation("walk", 0.5f, true);
+        PlayFootSteps(5, 0.8f);
+
+        print ("The victim has been killed, slumps over, and dies");
+		//Destroy (killTarget);
 
 		fadeOutStart = true;
-        yield return new WaitForSeconds(5);
+        yield return new WaitForSeconds(3f);
 
-		FadeOut ();
+        Child.StartAnimation("kneel", 0.7f, false);
+        yield return new WaitForSeconds(3f);
+
+        FadeOut ();
 		FadeIn ();
 		ReloadLoadScene();
+    }
 
+    void DropMask()
+    {
+        Transform t = Instantiate(dropMask, maskPos.transform.position, Quaternion.identity) as Transform;
+        t.GetComponent<SpriteRenderer>().flipX = true;
+        t.GetComponent<Rigidbody2D>().AddForce(new Vector2(-20, 150));
     }
 
 	//Function for fading out
@@ -215,9 +261,26 @@ public class IntroScript : MonoBehaviour {
 		//Destroy (GameObject.Find("IntroPrefab"));
     }
 
-    void OnLevelWasLoaded(int level)
+    void PlayDeathEffect(Vector3 position)
     {
-        CameraFade.Instance.SetFade(false);
+        Instantiate(DeathParticlePrefab, position, Quaternion.identity);
+        SoundController.Instance.PlaySound("Death");
 
+    }
+
+    void PlayFootSteps(float duration, float timeBetweenSteps)
+    {
+        StartCoroutine(footSteps(duration, timeBetweenSteps));
+    }
+
+    IEnumerator footSteps(float duration, float timeBetweenSteps)
+    {
+        DateTime endTime = DateTime.UtcNow + TimeSpan.FromSeconds(duration);
+
+        while(DateTime.UtcNow < endTime)
+        {
+            SoundController.Instance.PlaySound("footstep");
+            yield return new WaitForSeconds(timeBetweenSteps);
+        }
     }
 }

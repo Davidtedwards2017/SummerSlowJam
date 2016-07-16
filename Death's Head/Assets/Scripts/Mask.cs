@@ -37,7 +37,8 @@ public abstract class Mask : MonoBehaviour {
     {
         if (visable)
         {
-            PlayerController.Instance.m_Animator.skeleton.AttachUnitySprite("Mask_blank", MaskSprite, "Unlit/Transparent");
+            PlayerController.Instance.m_Animator.skeleton.AttachUnitySprite("Mask_blank", MaskSprite);
+            //PlayerController.Instance.m_Animator.skeleton.AttachUnitySprite("Mask_blank", MaskSprite, "Unlit/Transparent");
         }
     }
 

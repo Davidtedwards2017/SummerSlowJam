@@ -7,7 +7,7 @@ public class SequenceActorController : MonoBehaviour {
     private SkeletonAnimation m_Animator;
     private Renderer m_Renderer;
         // Use this for initialization
-	void Start () {
+	void Awake () {
         m_Animator = GetComponentInChildren<SkeletonAnimation>();
         m_Renderer = GetComponentInChildren<Renderer>();
     }

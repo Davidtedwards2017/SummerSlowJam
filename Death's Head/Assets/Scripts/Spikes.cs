@@ -18,7 +18,6 @@ public class Spikes : MonoBehaviour {
         if (other.tag.Equals("Player"))
         {
           //PlayerController.Instance
-          Debug.Log("player entered spikes");
             PlayerController.Instance.Death();
         }
 

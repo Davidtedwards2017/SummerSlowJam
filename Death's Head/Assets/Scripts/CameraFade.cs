@@ -2,7 +2,9 @@
 
 public class CameraFade : MonoBehaviour {
 
-    private Animator m_Animator;
+    private Animator m_Animator
+    { get { return GetComponent<Animator>(); } }
+
     public static CameraFade Instance;
 
     void Awake()
@@ -11,7 +13,7 @@ public class CameraFade : MonoBehaviour {
     }
 
 	void Start () {
-        m_Animator = GetComponent<Animator>();
+        //m_Animator = GetComponent<Animator>();
 	}
 
     public void SetFade(bool value)
