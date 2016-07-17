@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using Spine.Unity;
+using Spine.Unity.Modules;
 
 public class SequenceActorController : MonoBehaviour {
 
@@ -50,6 +51,11 @@ public class SequenceActorController : MonoBehaviour {
         m_Animator.loop = looping;
         m_Animator.AnimationName = name;
         
+    }
+
+    public void SwapMask(Sprite mask)
+    {
+        m_Animator.skeleton.AttachUnitySprite("Mask_blank", mask);
     }
 
 }

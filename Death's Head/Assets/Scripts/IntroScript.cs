@@ -46,6 +46,9 @@ public class IntroScript : MonoBehaviour {
     public Transform FirstCamFocusAnchor;
     public Transform SecondCamFocusAnchor;
 
+    [SerializeField] public Sprite JumpMask;
+    [SerializeField] public Sprite DeathMask;
+
     public string SceneToLoad;
 
     //Values for alphas and fading
@@ -60,6 +63,9 @@ public class IntroScript : MonoBehaviour {
     public static int Replays = 0;
 
     bool SetupSequnceCompleted = false;
+    bool PlayerSeenSequenceStarted = false;
+    bool PlayerSeenSequenceCompleted = false;
+    bool GiveUpsequenceStarted = false;
 
     void OnLevelWasLoaded(int level)
     {
@@ -93,6 +99,13 @@ public class IntroScript : MonoBehaviour {
             SetupSequnceCompleted = false;
         }
 
+        if (PlayerSeenSequenceStarted && PlayerSeenSequenceCompleted && /*DeathMask.Instance.Active &&*/ !GiveUpsequenceStarted)
+        {
+            StartCoroutine(GiveUpSequence());
+        }
+
+
+
 		//Fading out and in when Coroutine is done
 		FadeOut ();
 		FadeIn ();
@@ -111,19 +124,21 @@ public class IntroScript : MonoBehaviour {
         Victim.StartAnimation("kneel", 0.2f, false);
         Killer.transform.position = SwingPosAnchor.position;
         Victim.transform.position = VictimDeathAnchor.position;
+        Victim.SwapMask(JumpMask);
 
         SetupSequnceCompleted = true;
 
     }
 
-    public void StartSetupSequence()
+    public void StartPlayerSeenSequence()
     {
-        StartCoroutine(SetupSequence());
+        StartCoroutine(PlayerSeenSequence());
     }
 
-    IEnumerator SetupSequence()
+    IEnumerator PlayerSeenSequence()
     {
-        Killer.SetVisable(true);
+        Victim.SwapMask(DeathMask);
+        PlayerSeenSequenceStarted = true;
         CameraFollow.Instance.Target = FirstCamFocusAnchor;
         CameraFollow.Instance.xSmooth = 2;
 
@@ -135,7 +150,21 @@ public class IntroScript : MonoBehaviour {
 
         //victim sees killer
         Victim.StartAnimation("idle", 0.5f, true);
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(1);
+        ThrowDeathMask();
+        Victim.SwapMask(JumpMask);
+        yield return new WaitForSeconds(1);
+        PlayerSeenSequenceCompleted = true;
+    }
+
+    IEnumerator GiveUpSequence()
+    {
+        Destroy(MaskUIController.Instance.gameObject);
+        GiveUpsequenceStarted = true;
+        Destroy(PlayerController.Instance.gameObject);
+        Killer.SetVisable(true);
+        CameraFollow.Instance.Target = FirstCamFocusAnchor;
+        CameraFollow.Instance.xSmooth = 2;
 
         //victim kneels
         Victim.MoveTo(VictimDeathAnchor, 1.5f);
@@ -257,8 +286,6 @@ public class IntroScript : MonoBehaviour {
     public void ReloadLoadScene()
     {
         SceneManager.LoadScene(SceneToLoad);
-		//newPlayer.SetActive (true);
-		//Destroy (GameObject.Find("IntroPrefab"));
     }
 
     void PlayDeathEffect(Vector3 position)
@@ -266,6 +293,15 @@ public class IntroScript : MonoBehaviour {
         Instantiate(DeathParticlePrefab, position, Quaternion.identity);
         SoundController.Instance.PlaySound("Death");
 
+    }
+
+    public Transform deathMaskSpawnLocation;
+    public Transform DeathMaskPickupPrefab;
+
+    void ThrowDeathMask()
+    {
+        Transform t = Instantiate(DeathMaskPickupPrefab, deathMaskSpawnLocation.position, Quaternion.identity) as Transform;
+        t.GetComponent<Rigidbody2D>().AddForce(new Vector2(-300, 210));
     }
 
     void PlayFootSteps(float duration, float timeBetweenSteps)

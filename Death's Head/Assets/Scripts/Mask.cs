@@ -8,6 +8,8 @@ public abstract class Mask : MonoBehaviour {
     public bool Active = false;
 
     public Sprite MaskSprite;
+
+    public Sprite UISprite;
 	
 	// Update is called once per frame
 	protected virtual void Update () {

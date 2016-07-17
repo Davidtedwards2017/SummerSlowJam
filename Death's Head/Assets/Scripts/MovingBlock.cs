@@ -28,7 +28,7 @@ public class MovingBlock : MonoBehaviour {
 
     public void Update()
     {
-        rigidBody.drag = (Moveable) ? 5 : 50000;
+        //rigidBody.drag = (Moveable) ? 5 : 50000;
         
         if (rigidBody.velocity.magnitude > MinSpeedForSound)
         {
@@ -42,7 +42,7 @@ public class MovingBlock : MonoBehaviour {
         {
             audioSource.Stop();
         }
-
+        /*
 		if (Moveable) 
 		{
 			rigidBody.drag = 5;
@@ -54,6 +54,7 @@ public class MovingBlock : MonoBehaviour {
 			rigidBody.drag = 1000;
 			rigidBody.angularDrag = 1000;
 		}
+        */
     }
 
 

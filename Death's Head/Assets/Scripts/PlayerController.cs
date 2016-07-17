@@ -79,6 +79,7 @@ public class PlayerController : MonoBehaviour {
 
     public bool CanFlip = true;
     public bool CanJump = false;
+    public bool CanMove = true;
     public bool CanReceiveInput = true;
     
     //input cooldown times
@@ -248,6 +249,12 @@ public class PlayerController : MonoBehaviour {
 	//Function to manage all player movement, 
 	void MoveManager (float horizontal)
 	{
+        if(!CanMove)
+        {
+            p_Move = false;
+            return;
+        }
+
 		//Add movement to actor if player is inputting movement
 		p_Rigidbody.velocity = new Vector2 (horizontal * p_Speed, p_Rigidbody.velocity.y);
 

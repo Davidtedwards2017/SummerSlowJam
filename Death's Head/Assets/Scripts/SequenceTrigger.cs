@@ -18,8 +18,10 @@ public class SequenceTrigger : MonoBehaviour {
     {
         if(other.tag.Equals("Player"))
         {
-            Destroy(PlayerController.Instance.gameObject);
-            IntroScript.Instance.StartSetupSequence();
+            //Destroy(PlayerController.Instance.gameObject);
+            PlayerController.Instance.CanMove = false;
+            PlayerController.Instance.SetState(PlayerController.PlayerStates.IDLE);
+            IntroScript.Instance.StartPlayerSeenSequence();
         }
     }
 }
